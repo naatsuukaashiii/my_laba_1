@@ -2,6 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 
+
+use App\Http\Controllers\InfoController;
+
+Route::get('/info/server', [InfoController::class, 'serverInfo']);
+Route::get('/info/client', [InfoController::class, 'clientInfo']);
+Route::get('/info/database', [InfoController::class, 'databaseInfo']);
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -12,7 +19,3 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::get('/', function () {
-    return view('welcome');
-});
