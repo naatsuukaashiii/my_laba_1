@@ -21,18 +21,12 @@ class InfoController extends Controller
         ]);
     }
 
-    public function databaseInfo(): JsonResponse
-    {
-        try {
-            $connection = DB::connection()->getPdo();
-            return response()->json([
-                'driver' => DB::connection()->getDriverName(),
-                'database' => $connection->query('select database()')->fetchColumn(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Database connection error: ' . $e->getMessage(),
-            ], 500); // Возвращаем код ошибки 500 (Internal Server Error)
-        }
+
+    public function databaseInfo() {
+        $connection = DB::connection()->getPdo();
+        return response()->json([
+            'driver' => DB::connection()->getDriverName(),
+            'database' => DB::connection()->getDatabaseName(),
+        ]);
     }
 }
