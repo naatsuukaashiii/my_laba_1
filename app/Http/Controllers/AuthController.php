@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Controller;
 class AuthController extends Controller
 {
     public function login(LoginRequest $request)
@@ -18,16 +19,33 @@ class AuthController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json([
+                'message' => 'Invalid credentials',
+                'errors' => [
+                    'username' => ['These credentials do not match our records.']
+                ]
+            ], 401);
         }
 
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(new LoginResourceDTO($token), 200);
+        return response()->json([
+            'token' => $token,
+            'user' => new UserResourceDTO(
+                $user->id,
+                $user->username,
+                $user->email,
+                $user->birthday
+            )
+        ], 200);
     }
     public function register(RegisterRequest $request)
     {
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json(['message' => 'User already exists'], 409);
+        }
+
         $data = $request->validated();
         $user = User::create([
             'username' => $data['username'],
@@ -38,11 +56,14 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json((new RegisterResourceDTO(
+        return response()->json(
+            (new RegisterResourceDTO(
                 $user->username,
                 $user->email,
                 $user->birthday
-            ))->toArray() + ['token' => $token], 201);
+            ))->toArray() + ['token' => $token],
+            201
+        );
     }
     public function me(Request $request)
     {
