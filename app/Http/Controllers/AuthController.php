@@ -28,7 +28,7 @@ class AuthController extends Controller
         $user = Auth::user();
         $maxTokens = (int) env('MAX_TOKENS', 4);
 
-        // Удаляем старые токены при превышении лимита
+
         $tokens = $user->tokens()->orderBy('created_at', 'desc')->get();
         if ($tokens->count() >= $maxTokens) {
             $tokens->slice($maxTokens - 1)->each->delete();
@@ -48,7 +48,6 @@ class AuthController extends Controller
     }
     public function register(RegisterRequest $request)
     {
-        // Проверка на существующего пользователя
         if (User::where('email', $request->email)->exists()) {
             return response()->json(['message' => 'User already exists'], 409);
         }
