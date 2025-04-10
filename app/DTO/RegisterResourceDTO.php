@@ -15,7 +15,6 @@ class RegisterResourceDTO
         $this->birthday = $birthday;
     }
 
-    // Добавьте этот метод
     public function toArray(): array
     {
         return [

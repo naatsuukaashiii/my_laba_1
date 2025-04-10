@@ -21,13 +21,19 @@ class AuthController extends Controller
         if (!Auth::attempt($credentials)) {
             return response()->json([
                 'message' => 'Invalid credentials',
-                'errors' => [
-                    'username' => ['These credentials do not match our records.']
-                ]
+                'errors' => ['username' => ['These credentials do not match our records.']]
             ], 401);
         }
 
         $user = Auth::user();
+        $maxTokens = (int) env('MAX_TOKENS', 4);
+
+        // Удаляем старые токены при превышении лимита
+        $tokens = $user->tokens()->orderBy('created_at', 'desc')->get();
+        if ($tokens->count() >= $maxTokens) {
+            $tokens->slice($maxTokens - 1)->each->delete();
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -42,28 +48,39 @@ class AuthController extends Controller
     }
     public function register(RegisterRequest $request)
     {
+        // Проверка на существующего пользователя
         if (User::where('email', $request->email)->exists()) {
             return response()->json(['message' => 'User already exists'], 409);
         }
 
-        $data = $request->validated();
+        $minBirthDate = now()->subYears(14)->format('Y-m-d');
+        if ($request->birthday > $minBirthDate) {
+            return response()->json([
+                'message' => 'Registration failed',
+                'errors' => [
+                    'birthday' => ['Age must be at least 14 years old']
+                ]
+            ], 422);
+        }
+
         $user = User::create([
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'birthday' => $data['birthday'],
+            'username' => $request->username,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'birthday' => $request->birthday,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(
-            (new RegisterResourceDTO(
+        return response()->json([
+            'token' => $token,
+            'user' => new UserResourceDTO(
+                $user->id,
                 $user->username,
                 $user->email,
                 $user->birthday
-            ))->toArray() + ['token' => $token],
-            201
-        );
+            )
+        ], 201);
     }
     public function me(Request $request)
     {
