@@ -3,10 +3,10 @@ namespace App\DTO;
 
 class UserResourceDTO
 {
-    public int $id;
-    public string $username;
-    public string $email;
-    public string $birthday;
+    public $id;
+    public $username;
+    public $email;
+    public $birthday;
 
     public function __construct(
         int $id,

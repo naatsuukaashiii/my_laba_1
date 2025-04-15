@@ -3,7 +3,7 @@ namespace App\DTO;
 
 class LoginResourceDTO
 {
-    public string $token;
+    public $token;
 
     public function __construct(string $token)
     {

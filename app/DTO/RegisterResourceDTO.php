@@ -4,9 +4,9 @@ namespace App\DTO;
 
 class RegisterResourceDTO
 {
-    public string $username;
-    public string $email;
-    public string $birthday;
+    public $username;
+    public $email;
+    public $birthday;
 
     public function __construct(string $username, string $email, string $birthday)
     {
